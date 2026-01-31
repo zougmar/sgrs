@@ -250,29 +250,110 @@ Or use a tool like Postman to register the first admin user.
 
 ## 📦 Deployment
 
-### Backend (Render/Railway/Heroku)
+### Frontend Deployment on Vercel
 
-1. Create a new web service
-2. Connect your GitHub repository
-3. Set environment variables:
-   - `MONGODB_URI` (MongoDB Atlas connection string)
-   - `JWT_SECRET`
-   - `JWT_EXPIRE`
-   - `PORT` (usually auto-set)
-   - `CLOUDINARY_CLOUD_NAME`
-   - `CLOUDINARY_API_KEY`
-   - `CLOUDINARY_API_SECRET`
-4. Deploy!
+#### Step 1: Push to GitHub
 
-### Frontend (Vercel/Netlify)
+1. Initialize git (if not already done):
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   ```
 
-1. Create a new project
-2. Connect your GitHub repository
-3. Set build command: `npm run build`
-4. Set output directory: `build`
-5. Set environment variable:
-   - `REACT_APP_API_URL` (your deployed backend URL)
+2. Create a new repository on GitHub
+
+3. Push to GitHub:
+   ```bash
+   git remote add origin https://github.com/yourusername/sgrs-security-website.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+#### Step 2: Deploy to Vercel
+
+1. Go to [Vercel](https://vercel.com) and sign in with your GitHub account
+
+2. Click **"Add New Project"**
+
+3. Import your GitHub repository
+
+4. Configure the project:
+   - **Framework Preset**: Create React App (auto-detected)
+   - **Root Directory**: `client` (click "Edit" and set to `client`)
+   - **Build Command**: `npm run build` (auto-detected)
+   - **Output Directory**: `build` (auto-detected)
+   - **Install Command**: `npm install` (auto-detected)
+
+5. Add Environment Variables:
+   - `REACT_APP_API_URL`: Your backend API URL (e.g., `https://your-backend.railway.app/api` or `https://your-backend.render.com/api`)
+
+6. Click **"Deploy"**
+
+7. Your site will be live at `https://your-project.vercel.app`
+
+**Note**: The `vercel.json` file is already configured for this project structure.
+
+### Backend Deployment (Railway/Render/Heroku)
+
+#### Option 1: Railway (Recommended - Easy & Free)
+
+1. Go to [Railway](https://railway.app) and sign in with GitHub
+
+2. Click **"New Project"** → **"Deploy from GitHub repo"**
+
+3. Select your repository
+
+4. Railway will auto-detect Node.js. Configure:
+   - **Root Directory**: `server`
+   - **Start Command**: `npm start`
+
+5. Add Environment Variables in Railway dashboard:
+   ```
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/sgrs_security
+   JWT_SECRET=your-super-secret-jwt-key
+   JWT_EXPIRE=7d
+   PORT=5000
+   CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
+   CLOUDINARY_API_KEY=your-cloudinary-api-key
+   CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=your-app-password
+   ```
+
+6. Deploy! Railway will provide a URL like `https://your-app.railway.app`
+
+7. Update your Vercel environment variable `REACT_APP_API_URL` to point to this URL
+
+#### Option 2: Render
+
+1. Go to [Render](https://render.com) and sign in with GitHub
+
+2. Click **"New +"** → **"Web Service"**
+
+3. Connect your GitHub repository
+
+4. Configure:
+   - **Name**: `sgrs-backend`
+   - **Root Directory**: `server`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+
+5. Add all environment variables (same as Railway above)
+
 6. Deploy!
+
+#### Option 3: Heroku
+
+1. Install Heroku CLI and login
+2. Create a new app: `heroku create sgrs-backend`
+3. Set buildpack: `heroku buildpacks:set heroku/nodejs`
+4. Set environment variables using `heroku config:set KEY=value`
+5. Deploy: `git push heroku main`
 
 ### MongoDB Atlas Setup
 
