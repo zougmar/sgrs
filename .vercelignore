@@ -1,0 +1,15 @@
+node_modules
+server/node_modules
+client/node_modules
+.env
+server/.env
+client/.env
+*.log
+.DS_Store
+.git
+.gitignore
+README.md
+QUICK_START.md
+MONGODB_CONNECTION_GUIDE.md
+server/EMAIL_SETUP.md
+server/EMAIL_QUICK_SETUP.md
