@@ -160,7 +160,6 @@ const Products = () => {
     e.stopPropagation();
     
     if (!isAuthenticated()) {
-      setSelectedProduct(product);
       setShowLoginModal(true);
       return;
     }
