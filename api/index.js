@@ -24,59 +24,80 @@ const checkDB = (req, res, next) => {
   next();
 };
 
+// Helper function to safely load routes
+const loadRoute = (routePath, routeName) => {
+  try {
+    const route = require(routePath);
+    console.log(`✅ ${routeName} routes loaded successfully`);
+    return route;
+  } catch (error) {
+    console.error(`❌ Error loading ${routeName} routes:`);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    if (error.stack) {
+      console.error('Error stack:', error.stack);
+    }
+    return null;
+  }
+};
+
 // Load routes with error handling
-let authRoutesLoaded = false;
-try {
-  const authRouter = require('../server/routes/auth');
+const authRouter = loadRoute('../server/routes/auth', 'Auth');
+if (authRouter) {
   app.use('/api/auth', authRouter);
-  authRoutesLoaded = true;
-  console.log('✅ Auth routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading auth routes:', error);
-  // Create a fallback route so the app doesn't crash
+} else {
+  // Create fallback routes if loading failed
   app.post('/api/auth/login', (req, res) => {
+    console.error('Login attempt - auth routes not loaded');
     res.status(500).json({
       success: false,
-      message: 'Auth routes failed to load. Check server logs.',
-      error: error.message
+      message: 'Auth routes failed to load. Please check server configuration and logs.',
+    });
+  });
+  
+  app.post('/api/auth/register', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'Auth routes failed to load. Please check server configuration and logs.',
+    });
+  });
+  
+  app.get('/api/auth/me', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'Auth routes failed to load. Please check server configuration and logs.',
     });
   });
 }
 
-try {
-  app.use('/api/services', checkDB, require('../server/routes/services'));
-} catch (error) {
-  console.error('Error loading services routes:', error);
+const servicesRouter = loadRoute('../server/routes/services', 'Services');
+if (servicesRouter) {
+  app.use('/api/services', checkDB, servicesRouter);
 }
 
-try {
-  app.use('/api/projects', checkDB, require('../server/routes/projects'));
-} catch (error) {
-  console.error('Error loading projects routes:', error);
+const projectsRouter = loadRoute('../server/routes/projects', 'Projects');
+if (projectsRouter) {
+  app.use('/api/projects', checkDB, projectsRouter);
 }
 
-try {
-  app.use('/api/products', checkDB, require('../server/routes/products'));
-} catch (error) {
-  console.error('Error loading products routes:', error);
+const productsRouter = loadRoute('../server/routes/products', 'Products');
+if (productsRouter) {
+  app.use('/api/products', checkDB, productsRouter);
 }
 
-try {
-  app.use('/api/contact', checkDB, require('../server/routes/contact'));
-} catch (error) {
-  console.error('Error loading contact routes:', error);
+const contactRouter = loadRoute('../server/routes/contact', 'Contact');
+if (contactRouter) {
+  app.use('/api/contact', checkDB, contactRouter);
 }
 
-try {
-  app.use('/api/orders', checkDB, require('../server/routes/orders'));
-} catch (error) {
-  console.error('Error loading orders routes:', error);
+const ordersRouter = loadRoute('../server/routes/orders', 'Orders');
+if (ordersRouter) {
+  app.use('/api/orders', checkDB, ordersRouter);
 }
 
-try {
-  app.use('/api/users', checkDB, require('../server/routes/users'));
-} catch (error) {
-  console.error('Error loading users routes:', error);
+const usersRouter = loadRoute('../server/routes/users', 'Users');
+if (usersRouter) {
+  app.use('/api/users', checkDB, usersRouter);
 }
 
 // MongoDB Connection
