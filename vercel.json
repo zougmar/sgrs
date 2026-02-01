@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "installCommand": "npm install && cd client && npm install && cd ../api && npm install",
   "builds": [
     {
       "src": "package.json",
@@ -23,7 +24,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
     }
   ]
 }
