@@ -16,27 +16,56 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Middleware to check database connection for routes that need it
+// Make it non-blocking - let routes handle their own DB errors
 const checkDB = (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({
-      success: false,
-      message: 'Database connection not available. Please check MONGODB_URI environment variable.',
-      error: 'Database disconnected'
-    });
+    console.warn('⚠️  Database not connected, but allowing request to proceed');
   }
   next();
 };
 
-// Routes that don't need database (auth might work without DB for some operations)
-app.use('/api/auth', require('../server/routes/auth'));
+// Load routes with error handling
+try {
+  app.use('/api/auth', require('../server/routes/auth'));
+} catch (error) {
+  console.error('Error loading auth routes:', error);
+}
 
-// Routes that need database - add checkDB middleware
-app.use('/api/services', checkDB, require('../server/routes/services'));
-app.use('/api/projects', checkDB, require('../server/routes/projects'));
-app.use('/api/products', checkDB, require('../server/routes/products'));
-app.use('/api/contact', checkDB, require('../server/routes/contact'));
-app.use('/api/orders', checkDB, require('../server/routes/orders'));
-app.use('/api/users', checkDB, require('../server/routes/users'));
+try {
+  app.use('/api/services', checkDB, require('../server/routes/services'));
+} catch (error) {
+  console.error('Error loading services routes:', error);
+}
+
+try {
+  app.use('/api/projects', checkDB, require('../server/routes/projects'));
+} catch (error) {
+  console.error('Error loading projects routes:', error);
+}
+
+try {
+  app.use('/api/products', checkDB, require('../server/routes/products'));
+} catch (error) {
+  console.error('Error loading products routes:', error);
+}
+
+try {
+  app.use('/api/contact', checkDB, require('../server/routes/contact'));
+} catch (error) {
+  console.error('Error loading contact routes:', error);
+}
+
+try {
+  app.use('/api/orders', checkDB, require('../server/routes/orders'));
+} catch (error) {
+  console.error('Error loading orders routes:', error);
+}
+
+try {
+  app.use('/api/users', checkDB, require('../server/routes/users'));
+} catch (error) {
+  console.error('Error loading users routes:', error);
+}
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -79,7 +108,7 @@ mongoose.connection.on('error', (err) => {
   console.error('❌ MongoDB connection error:', err.message);
 });
 
-// Health check
+// Health check (before 404 handler)
 app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({ 
@@ -90,10 +119,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+// 404 handler for undefined routes (must be after all routes)
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.path
+  });
+});
+
+// Error handling middleware (must be last)
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({
+    success: false,
     error: err.message || 'Internal server error',
     status: 'error'
   });

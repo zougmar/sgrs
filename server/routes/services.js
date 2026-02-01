@@ -13,6 +13,11 @@ const { upload, uploadToCloudinary, isCloudinaryConfigured } = require('../middl
 // Optional auth middleware - attaches user if token exists, but doesn't require it
 const optionalAuth = async (req, res, next) => {
   try {
+    // Skip auth if JWT_SECRET is not configured
+    if (!process.env.JWT_SECRET) {
+      return next();
+    }
+
     const jwt = require('jsonwebtoken');
     const User = require('../models/User');
     
@@ -31,6 +36,7 @@ const optionalAuth = async (req, res, next) => {
     }
   } catch (error) {
     // Ignore errors for optional auth
+    console.warn('Optional auth error (non-critical):', error.message);
   }
   next();
 };

@@ -3,6 +3,14 @@ const User = require('../models/User');
 
 // Protect routes
 exports.protect = async (req, res, next) => {
+  // Check if JWT_SECRET is configured
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server configuration error: JWT_SECRET not set',
+    });
+  }
+
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
