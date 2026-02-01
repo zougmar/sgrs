@@ -136,7 +136,7 @@ Then redeploy.
 The deployment is configured as follows:
 
 - **Frontend**: React app in `client/` directory, built and served as static files
-- **Backend**: Express API in `server/` directory, deployed as serverless functions via `api/index.js`
+- **Backend**: Express API in `server/` directory, deployed as serverless functions via `server/api.js`
 - **Routes**: 
   - `/api/*` → Backend API
   - `/*` → React frontend

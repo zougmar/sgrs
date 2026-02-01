@@ -39,7 +39,7 @@ https://your-project.vercel.app/api/health
 ```
 
 **If you get 404:**
-- Check that `api/index.js` exists
+- Check that `server/api.js` exists
 - Check Vercel build logs for errors
 - Verify `vercel.json` routes are correct
 
@@ -69,12 +69,12 @@ The frontend should use the environment variable. Check:
 ### Step 5: Common Issues
 
 #### Issue: CORS Errors
-**Solution**: CORS is already configured in `api/index.js` with `app.use(cors())`
+**Solution**: CORS is already configured in `server/api.js` with `app.use(cors())`
 
 #### Issue: 404 on API Routes
 **Solution**: 
 - Check `vercel.json` routes configuration
-- Verify `api/index.js` exists
+- Verify `server/api.js` exists
 - Check Vercel build logs
 
 #### Issue: MongoDB Connection Failed

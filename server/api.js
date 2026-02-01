@@ -5,7 +5,7 @@ const cors = require('cors');
 // Load environment variables (Vercel will use environment variables from dashboard)
 // Only load .env in development
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config({ path: require('path').join(__dirname, '../server/.env') });
+  require('dotenv').config();
 }
 
 const app = express();
@@ -42,7 +42,7 @@ const loadRoute = (routePath, routeName) => {
 };
 
 // Load routes with error handling
-const authRouter = loadRoute('../server/routes/auth', 'Auth');
+const authRouter = loadRoute('./routes/auth', 'Auth');
 if (authRouter) {
   app.use('/api/auth', authRouter);
 } else {
@@ -70,32 +70,32 @@ if (authRouter) {
   });
 }
 
-const servicesRouter = loadRoute('../server/routes/services', 'Services');
+const servicesRouter = loadRoute('./routes/services', 'Services');
 if (servicesRouter) {
   app.use('/api/services', checkDB, servicesRouter);
 }
 
-const projectsRouter = loadRoute('../server/routes/projects', 'Projects');
+const projectsRouter = loadRoute('./routes/projects', 'Projects');
 if (projectsRouter) {
   app.use('/api/projects', checkDB, projectsRouter);
 }
 
-const productsRouter = loadRoute('../server/routes/products', 'Products');
+const productsRouter = loadRoute('./routes/products', 'Products');
 if (productsRouter) {
   app.use('/api/products', checkDB, productsRouter);
 }
 
-const contactRouter = loadRoute('../server/routes/contact', 'Contact');
+const contactRouter = loadRoute('./routes/contact', 'Contact');
 if (contactRouter) {
   app.use('/api/contact', checkDB, contactRouter);
 }
 
-const ordersRouter = loadRoute('../server/routes/orders', 'Orders');
+const ordersRouter = loadRoute('./routes/orders', 'Orders');
 if (ordersRouter) {
   app.use('/api/orders', checkDB, ordersRouter);
 }
 
-const usersRouter = loadRoute('../server/routes/users', 'Users');
+const usersRouter = loadRoute('./routes/users', 'Users');
 if (usersRouter) {
   app.use('/api/users', checkDB, usersRouter);
 }
