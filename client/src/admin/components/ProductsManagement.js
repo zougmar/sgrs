@@ -74,11 +74,6 @@ const ProductsManagement = () => {
     setImagePreviews([...imagePreviews, ...newPreviews]);
   };
 
-  const removeImage = (index) => {
-    setImageFiles(imageFiles.filter((_, i) => i !== index));
-    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
-  };
-
   const addGalleryImageUrl = () => {
     if (newImageUrl.trim()) {
       try {

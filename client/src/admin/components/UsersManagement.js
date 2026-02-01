@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usersAPI } from '../../services/api';
-import { FiEdit, FiTrash2, FiPlus, FiX, FiSave, FiAlertTriangle, FiCheckCircle, FiInfo, FiShield } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiPlus, FiX, FiSave, FiAlertTriangle, FiCheckCircle, FiInfo } from 'react-icons/fi';
 
 const ROLES = ['admin', 'manager', 'editor', 'viewer'];
 
@@ -32,10 +32,6 @@ const UsersManagement = () => {
   const deleteModalRef = useRef(null);
   const bulkDeleteModalRef = useRef(null);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   // Close modals when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -58,7 +54,7 @@ const UsersManagement = () => {
     };
   }, [deleteConfirm.show, bulkDeleteConfirm.show]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await usersAPI.getAll();
       setUsers(response.data.data);
@@ -68,7 +64,11 @@ const UsersManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const showNotification = (message, type = 'error') => {
     setNotification({ show: true, message, type });

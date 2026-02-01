@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiShoppingCart, FiArrowLeft, FiCheck } from 'react-icons/fi';
+import { FiShoppingCart, FiArrowLeft } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { productsAPI } from '../services/api';
 

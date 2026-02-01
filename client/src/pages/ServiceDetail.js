@@ -50,7 +50,7 @@ const ServiceDetail = () => {
     if (id) {
       fetchService();
     }
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   const handleInputChange = (e) => {
     setFormData({

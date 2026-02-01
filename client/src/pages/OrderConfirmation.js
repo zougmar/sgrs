@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheckCircle, FiDownload, FiHome, FiShoppingBag } from 'react-icons/fi';
 import { ordersAPI } from '../services/api';
@@ -8,7 +8,6 @@ import logo2Image from '../images/logo2.jpeg';
 
 const OrderConfirmation = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
