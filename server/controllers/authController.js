@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -55,8 +57,26 @@ exports.register = async (req, res) => {
 // @access  Public (only works if database is empty)
 exports.createFirstAdmin = async (req, res) => {
   try {
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database not connected. Please check MONGODB_URI environment variable.',
+      });
+    }
+
     // Check if any users exist
-    const userCount = await User.countDocuments();
+    let userCount;
+    try {
+      userCount = await User.countDocuments();
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection error. Please check your MongoDB connection.',
+        error: dbError.message,
+      });
+    }
     
     if (userCount > 0) {
       return res.status(403).json({
@@ -76,14 +96,41 @@ exports.createFirstAdmin = async (req, res) => {
     }
 
     // Create admin user
-    const admin = await User.create({
-      username,
-      email,
-      password,
-      role: 'admin',
-    });
+    let admin;
+    try {
+      admin = await User.create({
+        username,
+        email,
+        password,
+        role: 'admin',
+      });
+    } catch (createError) {
+      console.error('Error creating admin user:', createError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create admin user',
+        error: createError.message,
+      });
+    }
 
-    const token = generateToken(admin._id);
+    // Generate token
+    let token;
+    try {
+      if (!process.env.JWT_SECRET) {
+        return res.status(500).json({
+          success: false,
+          message: 'JWT_SECRET not configured. Please set JWT_SECRET environment variable.',
+        });
+      }
+      token = generateToken(admin._id);
+    } catch (tokenError) {
+      console.error('Error generating token:', tokenError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate authentication token',
+        error: tokenError.message,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -97,9 +144,11 @@ exports.createFirstAdmin = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Unexpected error in createFirstAdmin:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: 'Internal server error',
+      error: error.message,
     });
   }
 };

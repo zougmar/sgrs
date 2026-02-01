@@ -62,6 +62,13 @@ if (authRouter) {
     });
   });
   
+  app.post('/api/auth/create-admin', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'Auth routes failed to load. Please check server configuration and logs.',
+    });
+  });
+  
   app.get('/api/auth/me', (req, res) => {
     res.status(500).json({
       success: false,
