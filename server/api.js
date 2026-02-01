@@ -1,15 +1,38 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const path = require('path');
+// Wrap entire module in try-catch to prevent crashes
+let app;
+try {
+  const express = require('express');
+  const mongoose = require('mongoose');
+  const cors = require('cors');
+  const path = require('path');
 
-// Load environment variables (Vercel will use environment variables from dashboard)
-// Only load .env in development
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+  // Load environment variables (Vercel will use environment variables from dashboard)
+  // Only load .env in development
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      require('dotenv').config();
+    } catch (dotenvError) {
+      console.warn('⚠️  Could not load .env file (this is OK in production):', dotenvError.message);
+    }
+  }
+
+  app = express();
+} catch (initError) {
+  console.error('❌ Fatal error initializing Express:', initError);
+  // Create minimal fallback app
+  const express = require('express');
+  app = express();
+  app.use(express.json());
+  app.use((req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'Server initialization failed',
+      error: initError.message
+    });
+  });
+  module.exports = app;
+  return;
 }
-
-const app = express();
 
 // Middleware
 app.use(cors());
@@ -46,11 +69,19 @@ const loadRoute = (routePath, routeName) => {
   }
 };
 
-// Load routes with error handling
-const authRouter = loadRoute('./routes/auth', 'Auth');
-if (authRouter) {
-  app.use('/api/auth', authRouter);
-} else {
+// Load routes with error handling - wrap in try-catch to prevent crashes
+let authRouter;
+try {
+  authRouter = loadRoute('./routes/auth', 'Auth');
+  if (authRouter) {
+    app.use('/api/auth', authRouter);
+  }
+} catch (routeError) {
+  console.error('❌ Fatal error loading auth routes:', routeError);
+  authRouter = null;
+}
+
+if (!authRouter) {
   // Create fallback routes if loading failed
   app.post('/api/auth/login', (req, res) => {
     console.error('Login attempt - auth routes not loaded');
@@ -82,34 +113,59 @@ if (authRouter) {
   });
 }
 
-const servicesRouter = loadRoute('./routes/services', 'Services');
-if (servicesRouter) {
-  app.use('/api/services', checkDB, servicesRouter);
+// Load other routes with error handling
+try {
+  const servicesRouter = loadRoute('./routes/services', 'Services');
+  if (servicesRouter) {
+    app.use('/api/services', checkDB, servicesRouter);
+  }
+} catch (e) {
+  console.error('Error loading services routes:', e.message);
 }
 
-const projectsRouter = loadRoute('./routes/projects', 'Projects');
-if (projectsRouter) {
-  app.use('/api/projects', checkDB, projectsRouter);
+try {
+  const projectsRouter = loadRoute('./routes/projects', 'Projects');
+  if (projectsRouter) {
+    app.use('/api/projects', checkDB, projectsRouter);
+  }
+} catch (e) {
+  console.error('Error loading projects routes:', e.message);
 }
 
-const productsRouter = loadRoute('./routes/products', 'Products');
-if (productsRouter) {
-  app.use('/api/products', checkDB, productsRouter);
+try {
+  const productsRouter = loadRoute('./routes/products', 'Products');
+  if (productsRouter) {
+    app.use('/api/products', checkDB, productsRouter);
+  }
+} catch (e) {
+  console.error('Error loading products routes:', e.message);
 }
 
-const contactRouter = loadRoute('./routes/contact', 'Contact');
-if (contactRouter) {
-  app.use('/api/contact', checkDB, contactRouter);
+try {
+  const contactRouter = loadRoute('./routes/contact', 'Contact');
+  if (contactRouter) {
+    app.use('/api/contact', checkDB, contactRouter);
+  }
+} catch (e) {
+  console.error('Error loading contact routes:', e.message);
 }
 
-const ordersRouter = loadRoute('./routes/orders', 'Orders');
-if (ordersRouter) {
-  app.use('/api/orders', checkDB, ordersRouter);
+try {
+  const ordersRouter = loadRoute('./routes/orders', 'Orders');
+  if (ordersRouter) {
+    app.use('/api/orders', checkDB, ordersRouter);
+  }
+} catch (e) {
+  console.error('Error loading orders routes:', e.message);
 }
 
-const usersRouter = loadRoute('./routes/users', 'Users');
-if (usersRouter) {
-  app.use('/api/users', checkDB, usersRouter);
+try {
+  const usersRouter = loadRoute('./routes/users', 'Users');
+  if (usersRouter) {
+    app.use('/api/users', checkDB, usersRouter);
+  }
+} catch (e) {
+  console.error('Error loading users routes:', e.message);
 }
 
 // MongoDB Connection
@@ -140,17 +196,24 @@ const connectDB = async () => {
   }
 };
 
-// Connect to database
-connectDB();
+// Connect to database asynchronously (don't block module load)
+// Use setImmediate to delay connection until after module is fully loaded
+setImmediate(() => {
+  try {
+    connectDB();
+    
+    // Handle connection events
+    mongoose.connection.on('disconnected', () => {
+      console.log('⚠️  MongoDB disconnected. Attempting to reconnect...');
+      connectDB();
+    });
 
-// Handle connection events
-mongoose.connection.on('disconnected', () => {
-  console.log('⚠️  MongoDB disconnected. Attempting to reconnect...');
-  connectDB();
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('❌ MongoDB connection error:', err.message);
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ MongoDB connection error:', err.message);
+    });
+  } catch (err) {
+    console.error('❌ Error setting up MongoDB connection:', err.message);
+  }
 });
 
 // Health check (before 404 handler)
