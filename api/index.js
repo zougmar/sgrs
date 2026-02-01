@@ -15,24 +15,48 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Middleware to check database connection for routes that need it
+const checkDB = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database connection not available. Please check MONGODB_URI environment variable.',
+      error: 'Database disconnected'
+    });
+  }
+  next();
+};
+
+// Routes that don't need database (auth might work without DB for some operations)
 app.use('/api/auth', require('../server/routes/auth'));
-app.use('/api/services', require('../server/routes/services'));
-app.use('/api/projects', require('../server/routes/projects'));
-app.use('/api/products', require('../server/routes/products'));
-app.use('/api/contact', require('../server/routes/contact'));
-app.use('/api/orders', require('../server/routes/orders'));
-app.use('/api/users', require('../server/routes/users'));
+
+// Routes that need database - add checkDB middleware
+app.use('/api/services', checkDB, require('../server/routes/services'));
+app.use('/api/projects', checkDB, require('../server/routes/projects'));
+app.use('/api/products', checkDB, require('../server/routes/products'));
+app.use('/api/contact', checkDB, require('../server/routes/contact'));
+app.use('/api/orders', checkDB, require('../server/routes/orders'));
+app.use('/api/users', checkDB, require('../server/routes/users'));
 
 // MongoDB Connection
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/sgrs_security';
+    // Don't reconnect if already connected
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
+
+    const mongoURI = process.env.MONGODB_URI;
+    
+    if (!mongoURI) {
+      console.error('❌ MONGODB_URI environment variable is not set');
+      return;
+    }
     
     const options = {
-      serverSelectionTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
+      connectTimeoutMS: 10000,
     };
 
     await mongoose.connect(mongoURI, options);
@@ -44,6 +68,16 @@ const connectDB = async () => {
 
 // Connect to database
 connectDB();
+
+// Handle connection events
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️  MongoDB disconnected. Attempting to reconnect...');
+  connectDB();
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err.message);
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
