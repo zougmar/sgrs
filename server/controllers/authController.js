@@ -50,6 +50,60 @@ exports.register = async (req, res) => {
   }
 };
 
+// @desc    Create first admin user (if no users exist)
+// @route   POST /api/auth/create-admin
+// @access  Public (only works if database is empty)
+exports.createFirstAdmin = async (req, res) => {
+  try {
+    // Check if any users exist
+    const userCount = await User.countDocuments();
+    
+    if (userCount > 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin user already exists. Use /api/auth/register to create additional users.',
+      });
+    }
+
+    const { username, email, password } = req.body;
+
+    // Validate required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide username, email, and password',
+      });
+    }
+
+    // Create admin user
+    const admin = await User.create({
+      username,
+      email,
+      password,
+      role: 'admin',
+    });
+
+    const token = generateToken(admin._id);
+
+    res.status(201).json({
+      success: true,
+      message: 'First admin user created successfully',
+      token,
+      user: {
+        id: admin._id,
+        username: admin.username,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
