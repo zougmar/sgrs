@@ -25,10 +25,22 @@ const checkDB = (req, res, next) => {
 };
 
 // Load routes with error handling
+let authRoutesLoaded = false;
 try {
-  app.use('/api/auth', require('../server/routes/auth'));
+  const authRouter = require('../server/routes/auth');
+  app.use('/api/auth', authRouter);
+  authRoutesLoaded = true;
+  console.log('✅ Auth routes loaded successfully');
 } catch (error) {
-  console.error('Error loading auth routes:', error);
+  console.error('❌ Error loading auth routes:', error);
+  // Create a fallback route so the app doesn't crash
+  app.post('/api/auth/login', (req, res) => {
+    res.status(500).json({
+      success: false,
+      message: 'Auth routes failed to load. Check server logs.',
+      error: error.message
+    });
+  });
 }
 
 try {
@@ -121,10 +133,12 @@ app.get('/api/health', (req, res) => {
 
 // 404 handler for undefined routes (must be after all routes)
 app.use((req, res) => {
+  console.log(`⚠️  404 - Route not found: ${req.method} ${req.path}`);
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    path: req.path
+    path: req.path,
+    method: req.method
   });
 });
 
