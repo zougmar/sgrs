@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 
 // Load environment variables (Vercel will use environment variables from dashboard)
 // Only load .env in development
@@ -25,13 +26,17 @@ const checkDB = (req, res, next) => {
 };
 
 // Helper function to safely load routes
+// Use absolute paths to ensure routes load correctly in Vercel
 const loadRoute = (routePath, routeName) => {
   try {
-    const route = require(routePath);
-    console.log(`✅ ${routeName} routes loaded successfully`);
+    // Resolve path relative to this file's directory
+    const absolutePath = path.resolve(__dirname, routePath);
+    const route = require(absolutePath);
+    console.log(`✅ ${routeName} routes loaded successfully from ${absolutePath}`);
     return route;
   } catch (error) {
     console.error(`❌ Error loading ${routeName} routes:`);
+    console.error('Attempted path:', routePath);
     console.error('Error message:', error.message);
     console.error('Error code:', error.code);
     if (error.stack) {
