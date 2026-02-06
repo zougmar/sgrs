@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const WhatsAppButton = () => {
-  const phoneNumber = '212670483149'; // Remove spaces and + for WhatsApp link
+  const phoneNumber = '212 621-572513';// Remove spaces and + for WhatsApp link
   const whatsappMessage = encodeURIComponent('Bonjour, je souhaite obtenir plus d\'informations sur vos services.');
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${whatsappMessage}`;
 
